@@ -6,7 +6,7 @@ pipeline airportsPipeline {
     
     airportsExtractor -> airportsTextFileInterpreter;
 
-    // Pipes can be further chained, 
+    // Pipes can be further chained
     // leading to an overview of the pipeline.
     airportsTextFileInterpreter
         -> airportsCSVInterpreter
