@@ -1,0 +1,139 @@
+
+
+
+pipeline TemperatureDataPipeline {
+
+    // Define the pipeline structure by referencing the blocks used.
+    temperatureExtractor
+        -> temperatureZipArchiveInterpreter
+        -> temperatureFilePicker
+        
+        -> temperatureTextFileInterpreter
+        -> temperatureCSVInterpreter
+        -> temperatureHeaderWriter
+        -> temperatureIdHeaderWriter
+        -> temperatureBatteryHeaderWriter
+        -> temperatureProdHeaderWriter
+        -> temperatureModelHeaderWriter
+        -> temperatureMonthHeaderWriter
+        -> temperatureTableInterpreter
+        -> CelsiusToFahrenheitBatteryTempTransformer
+        -> CelsiusToFahrenheitTransformer;
+        
+
+        CelsiusToFahrenheitTransformer
+        
+        -> temperatureLoader;
+
+
+
+    // Define the blocks used
+
+    block temperatureZipArchiveInterpreter oftype ArchiveInterpreter {
+        archiveType: "zip";
+    }
+    
+    block temperatureTextFileInterpreter oftype TextFileInterpreter {
+        encoding: "latin2";
+    }
+
+    block temperatureFilePicker oftype FilePicker {
+        path: "/data.csv";
+    }
+
+
+    block temperatureExtractor oftype HttpExtractor {
+        url: "https://www.mowesta.com/data/measure/mowesta-dataset-20221107.zip";
+    }
+
+    block temperatureCSVInterpreter oftype CSVInterpreter {
+        delimiter: ";";
+    }
+
+    block temperatureHeaderWriter oftype CellWriter {
+        at: cell E1;
+        write: ["temperature"];
+    }
+
+    block temperatureIdHeaderWriter oftype CellWriter {
+        at: cell A1;
+        write: ["id"];
+    }
+
+    block temperatureProdHeaderWriter oftype CellWriter {
+        at: cell B1;
+        write: ["producer"];
+    }
+
+    block temperatureModelHeaderWriter oftype CellWriter {
+        at: cell C1;
+        write: ["model"];
+    }
+
+    block temperatureMonthHeaderWriter oftype CellWriter {
+        at: cell D1;
+        write: ["month"];
+    }
+
+    block temperatureBatteryHeaderWriter oftype CellWriter {
+        at: cell J1;
+        write: ["battery_temperature"];
+    }
+
+    block CelsiusToFahrenheitTransformer oftype TableTransformer {
+        inputColumns: ['temperature'];
+        outputColumn: 'temperature';
+        use: CelsiusToFahrenheit;
+    }
+ 
+    block CelsiusToFahrenheitBatteryTempTransformer oftype TableTransformer {
+        inputColumns: ['battery_temperature'];
+        outputColumn: 'battery_temperature';
+        use: CelsiusToFahrenheit;
+    }
+
+    block temperatureTableInterpreter oftype TableInterpreter {
+        header: true;
+        columns: [
+             "id" oftype PositiveInteger,
+            "producer" oftype text,
+            "model" oftype text,
+            "month" oftype integer,
+            "temperature" oftype decimal,
+            "battery_temperature" oftype decimal
+        ];
+    } 
+
+    block temperatureLoader oftype SQLiteLoader {
+        table: "temperatures";
+        file: "./temperatures.sqlite";
+    }
+
+    
+
+    // Define the value types used
+
+    valuetype PositiveInteger oftype integer {
+        constraints: [IsPositive];
+    }
+
+
+    // Define the constraints used
+
+    constraint IsPositive on integer :
+        value > 0;
+
+    //Define the transformers used
+
+    
+    transform CelsiusToFahrenheit {
+    from Celsius oftype decimal;
+    to Fahrenheit oftype decimal;
+
+    Fahrenheit: (Celsius * 9/5) + 32;
+    }
+
+ 
+
+
+    }
