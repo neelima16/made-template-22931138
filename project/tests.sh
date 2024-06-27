@@ -1,8 +1,5 @@
 #!/bin/bash
 
-# Navigate to the directory where the script is located
-cd "$(dirname "$0")"
-
 # Ensure pipeline script is executable (if not already)
 chmod +x pipeline.py
 
