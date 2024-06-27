@@ -1,5 +1,5 @@
 #!/bin/bash
-
+#
 # Ensure pipeline script is executable (if not already)
 chmod +x pipeline.py
 
