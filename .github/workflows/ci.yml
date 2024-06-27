@@ -18,16 +18,15 @@ jobs:
       with:
         python-version: '3.9'
 
-    - name: Install dependencies  # Install any dependencies from requirements.txt
+    - name: Install dependencies  # Install dependencies directly
       run: |
         python -m pip install --upgrade pip
-        # If you have a requirements.txt file, uncomment the line below:
-        # python -m pip install -r requirements.txt
+        python -m pip install pandas
 
     - name: Make tests.sh executable  # Make tests.sh executable
-      run: |
-        chmod +x ./project/tests.sh
+      run: chmod +x ./project/tests.sh
 
-    - name: Run tests  # Run tests.sh script
+    - name: Run tests  # Navigate to project folder and run tests.sh script
       run: |
-        ./project/tests.sh
+        cd project
+        ./tests.sh
