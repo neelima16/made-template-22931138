@@ -6,8 +6,8 @@ chmod +x pipeline.py
 # Run the data pipeline
 python3 pipeline.py
 
-# Check if the output files exist in the expected directory
-if [[ -f "../data/database1.db" && -f "../data/database2.db" ]]; then
+# Check if the output files exist
+if [[ -f "data/database1.db" && -f "data/database2.db" ]]; then
     echo "Test Passed: Output files exist."
     exit 0
 else
