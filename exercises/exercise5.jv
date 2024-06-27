@@ -1,0 +1,71 @@
+pipeline StopsPipeline {
+
+    // a Defining the pipeline stages for processing stops data
+    StopsExtractor
+        -> StopsFilePicker
+        -> StopsTextFileInterpreter
+        -> StopsCSVInterpreter;
+
+    // b Defining the second part of the pipeline stages
+    StopsCSVInterpreter
+        -> StopColumnDeleter
+        -> StopsTableInterpreter
+        -> StopsSQLiteLoader;
+
+    // c Block to extract GTFS data from a URL
+    block StopsExtractor oftype GTFSExtractor {
+        url: "https://gtfs.rhoenenergie-bus.de/GTFS.zip"; // URL of the GTFS zip file
+    }
+
+    // d Block to interpret the text file with UTF-8 encoding
+    block StopsTextFileInterpreter oftype TextFileInterpreter {
+        encoding: "utf8"; // Specify the file encoding
+    }
+
+    // e Block to interpret the CSV file format
+    block StopsCSVInterpreter oftype CSVInterpreter { 
+        delimiter: ","; // Specify the CSV delimiter
+        enclosing: '"'; // Specify the enclosing character
+    }
+    
+    // f Block to select the specific file within the extracted GTFS data
+    block StopsFilePicker oftype FilePicker {
+        path: "/stops.txt"; // Path to the stops.txt file
+    }
+
+    // g Block to delete unnecessary columns from the CSV
+    block StopColumnDeleter oftype ColumnDeleter{
+        delete: [column B, column D, column H, column I, column J, column K,
+        column L]; // List of columns to be deleted
+    }
+
+    // h Block to interpret the table structure of the stops data
+    block StopsTableInterpreter oftype TableInterpreter {
+        header: false; // Indicate whether the file contains a header row
+        columns: [
+            "stop_id" oftype integer, // Define the column "stop_id" as integer
+            "stop_name" oftype text, // Define the column "stop_name" as text
+            "stop_lat" oftype decimal, // Define the column "stop_lat" as decimal
+            "stop_lon" oftype decimal, // Define the column "stop_lon" as decimal
+            "zone_id" oftype zone_id, // Define the column "zone_id" with a custom type
+        ];
+    }
+
+    // i Block to load the processed data into an SQLite database
+    block StopsSQLiteLoader oftype SQLiteLoader {
+        table: "stops"; // Specify the table name in the SQLite database
+        file: "./gtfs.sqlite"; // Path to the SQLite database file
+    }
+
+}
+
+    // j Defining a custom value type for zone_id with constraints
+    valuetype zone_id oftype integer {
+        constraints: [
+            OnlyValidZone, // Apply a constraint to ensure only valid zone IDs are used
+        ];
+    }   
+
+    // k Defining the constraint for valid zone IDs
+    constraint OnlyValidZone on integer:
+        value == 1645; // Only accept zone_id with the value 1645
